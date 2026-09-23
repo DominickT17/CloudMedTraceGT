@@ -1,13 +1,64 @@
 @page
+@model CloudMedTraceGT.Web.Pages.Movimientos.IndexModel
 @{
     ViewData["Title"] = "Movimientos";
 }
-<section class="card">
-    <div class="card-body p-4 p-md-5">
-        <span class="badge demo-badge mb-3">Próximamente</span>
-        <h1>Movimientos</h1>
-        <p class="lead text-secondary">Módulo en desarrollo.</p>
-        <p>Esta página forma parte de la base común. Sus funcionalidades se implementarán en una fase posterior.</p>
-        <a class="btn btn-outline-primary" asp-page="/Index">Volver al inicio</a>
-    </div>
+<section id="movimientos" data-api-url="@Model.ApiBaseUrl">
+    <h1>Movimientos</h1>
+    <p class="text-secondary">Registra ingresos y traslados entre establecimientos.</p>
+    <div id="mensaje" role="status" aria-live="polite" class="mb-3"></div>
+    <noscript><p class="alert alert-warning">Activa JavaScript para gestionar movimientos.</p></noscript>
+    <button id="actualizar" class="btn btn-outline-primary mb-3" type="button">Actualizar datos</button>
+    <form id="movimiento-form" class="card mb-4">
+        <fieldset id="form-campos" class="card-body p-4" disabled>
+            <legend id="form-titulo" class="h5">Registrar movimiento</legend>
+            <div id="form-errores" class="text-danger mb-3" role="alert"></div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="lote" class="form-label">Lote</label>
+                    <select id="lote" class="form-select" required></select>
+                </div>
+                <div class="col-md-6">
+                    <label for="tipo" class="form-label">Tipo de movimiento</label>
+                    <select id="tipo" class="form-select" required>
+                        <option value="INGRESO">Ingreso</option><option value="TRASLADO">Traslado</option>
+                    </select>
+                </div>
+                <div id="origen-grupo" class="col-md-6" hidden>
+                    <label for="origen" class="form-label">Origen</label>
+                    <select id="origen" class="form-select"></select>
+                </div>
+                <div class="col-md-6">
+                    <label for="destino" class="form-label">Destino</label>
+                    <select id="destino" class="form-select" required></select>
+                </div>
+                <div class="col-md-6">
+                    <label for="cantidad" class="form-label">Cantidad</label>
+                    <input id="cantidad" class="form-control" type="number" min="1" step="1" required />
+                </div>
+            </div>
+            <p id="tipo-ayuda" class="form-text mt-3"></p>
+            <div id="disponibilidad" class="alert alert-light border mt-3" role="status" aria-live="polite">Selecciona un lote para consultar sus saldos.</div>
+            <p id="edicion-aviso" class="small text-secondary" hidden>La fecha original se conserva. Django comprobará todo el historial antes de aceptar la corrección. Los saldos mostrados son actuales, no los disponibles en la fecha original.</p>
+            <button id="guardar" class="btn btn-primary" type="submit">Registrar movimiento</button>
+            <button id="cancelar" class="btn btn-outline-secondary" type="button" hidden>Cancelar edición</button>
+        </fieldset>
+    </form>
+    <section class="card" aria-labelledby="listado-title">
+        <div class="card-body p-4">
+            <h2 id="listado-title" class="h5">Movimientos registrados</h2>
+            <p class="small text-secondary">Fechas en horario de Guatemala (UTC−06:00). En Trazabilidad, busca el número de lote indicado.</p>
+            <p id="lista-estado" role="status">Cargando movimientos…</p>
+            <div class="table-responsive" tabindex="0" role="region" aria-label="Listado de movimientos">
+                <table class="table align-middle">
+                    <caption>Historial ordenado por la API.</caption>
+                    <thead><tr><th scope="col">Lote</th><th scope="col">Tipo</th><th scope="col">Origen</th><th scope="col">Destino</th><th scope="col">Cantidad</th><th scope="col">Fecha</th><th scope="col">Acciones</th></tr></thead>
+                    <tbody id="movimientos-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
 </section>
+@section Scripts {
+    <script type="module" src="~/js/movimientos.js" asp-append-version="true"></script>
+}
