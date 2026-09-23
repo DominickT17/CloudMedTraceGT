@@ -1,0 +1,55 @@
+@{
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString();
+    var modules = new[] { "Medicamentos", "Lotes", "Establecimientos", "Movimientos", "Trazabilidad", "Alertas" };
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] · CloudMed Trace GT</title>
+    <link rel="icon" href="~/favicon.ico" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <a class="visually-hidden-focusable skip-link" href="#main">Saltar al contenido</a>
+    <header class="bg-white border-bottom">
+        <nav class="navbar navbar-expand-xl" aria-label="Navegación principal">
+            <div class="container">
+                <a class="navbar-brand" asp-page="/Index">
+                    <span class="brand-name">CloudMed Trace GT</span>
+                    <small class="d-block text-secondary">by CloudColor</small>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                        aria-controls="mainNav" aria-expanded="false" aria-label="Abrir navegación">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav ms-auto gap-xl-1">
+                        <li class="nav-item"><a class="nav-link @(currentPage == "/Index" ? "active" : "")" aria-current="@(currentPage == "/Index" ? "page" : null)" asp-page="/Index">Inicio</a></li>
+                        @foreach (var module in modules)
+                        {
+                            var modulePage = $"/{module}/Index";
+                            <li class="nav-item"><a class="nav-link @(currentPage == modulePage ? "active" : "")" aria-current="@(currentPage == modulePage ? "page" : null)" asp-page="@modulePage">@module</a></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <main id="main" class="container py-4 py-md-5" tabindex="-1">
+        @RenderBody()
+    </main>
+    <footer class="border-top bg-white mt-auto py-3">
+        <div class="container d-flex flex-wrap justify-content-between gap-2 small text-secondary">
+            <span>CloudMed Trace GT · by CloudColor</span>
+            <span>Prototipo universitario · Guatemala</span>
+        </div>
+    </footer>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+

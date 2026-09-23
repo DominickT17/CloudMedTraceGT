@@ -1,0 +1,19 @@
+:root { --cloudmed-blue: #15558a; --cloudmed-green: #197150; }
+body { min-height: 100vh; display: flex; flex-direction: column; background: #f4f7fa; color: #203447; }
+.brand-name { color: var(--cloudmed-blue); font-weight: 700; }
+.navbar-brand small { font-size: .75rem; }
+.nav-link { font-size: .9rem; }
+.navbar .nav-link.active { color: var(--cloudmed-blue); font-weight: 700; background: #eaf2f9; border-radius: .4rem; }
+h1 { color: var(--cloudmed-blue); font-size: clamp(1.8rem, 4vw, 2.5rem); }
+.card { border-color: #dce5ed; border-radius: .75rem; box-shadow: 0 2px 6px #20344705; }
+.summary-card { border-top: 3px solid var(--cloudmed-blue); }
+.row > div:nth-child(even) > .summary-card { border-top-color: var(--cloudmed-green); }
+.demo-badge { color: #14593f; background: #e4f3eb; font-weight: 600; }
+.btn-primary { --bs-btn-bg: #15558a; --bs-btn-border-color: #15558a; --bs-btn-hover-bg: #10436e; --bs-btn-hover-border-color: #10436e; }
+.table th { background: #f7f9fb; color: #526373; font-size: .8rem; }
+.table td, .table th { padding: 1rem; }
+.table td:first-child, .table th:first-child { padding-left: 1.5rem; }
+.table td:last-child, .table th:last-child { padding-right: 1.5rem; }
+.table caption { caption-side: bottom; }
+.skip-link:focus { display: block; padding: .75rem; background: white; }
+a:focus-visible, button:focus-visible, [tabindex]:focus-visible { outline: 3px solid #197150; outline-offset: 3px; }
