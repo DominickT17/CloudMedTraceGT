@@ -1,5 +1,7 @@
 # MVP — CloudMed Trace GT
 
+> Actualización: para la API y las reglas implementadas, consultar [API_CONTRATOS.md](API_CONTRATOS.md). Este documento conserva la propuesta histórica; prevalecen las decisiones vigentes del contrato.
+
 **CloudMed Trace GT — Sistema de Trazabilidad de Medicamentos**, desarrollado por **CloudColor**. Frase: “Trazabilidad inteligente de medicamentos para Guatemala”.
 
 Objetivo: demostrar qué medicamento y lote se mueve, cuánto hay, dónde está, de dónde proviene, su recorrido y sus incidencias. El lote es la unidad de trazabilidad. Es un prototipo universitario local con datos ficticios; “SEGURO” expresa ausencia de incidencias registradas, no una certificación sanitaria.
