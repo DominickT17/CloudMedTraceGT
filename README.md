@@ -21,7 +21,7 @@ El sistema permitirá conocer el recorrido de un lote desde su ingreso hasta su 
 Python con Django 5.2 y Django REST Framework. Comunicación HTTP/REST/JSON desde JavaScript con `fetch()`.
 
 ### Base de datos
-SQLite local. Esta fase no incluye modelos de negocio ni datos persistentes de medicamentos.
+SQLite local con cinco modelos de dominio y migraciones Django. Contrato completo: [API_CONTRATOS.md](docs/API_CONTRATOS.md).
 
 ## Funcionalidades propuestas
 
@@ -68,7 +68,7 @@ La base común se implementa en `feat/dominick-platform`, workspace
 `CloudMedTraceGT_Workspaces/Dominick`. Esta sección recoge las decisiones actuales
 (Razor Pages + Django REST Framework + SQLite) y sustituye las alternativas de
 tecnología, ruta `src/` y nombre de rama propuestas en los documentos de planificación.
-Las reglas de negocio allí propuestas siguen pendientes de fases posteriores.
+Las reglas implementadas y las decisiones que sustituyen las propuestas anteriores están en [API_CONTRATOS.md](docs/API_CONTRATOS.md).
 
 ### Requisitos y estructura
 
@@ -88,7 +88,7 @@ backend/
   manage.py
   requirements.txt
   cloudmed_api/              Configuración, rutas y WSGI
-  core/                     Único endpoint de prueba
+  core/                     Modelos, servicios, serializers, API, admin, tests y migraciones
   .venv/                    Entorno local ignorado
   db.sqlite3                Archivo local ignorado, si se genera
 ```
@@ -114,8 +114,9 @@ En el equipo comprobado, `python` fuera del entorno apunta al alias de Microsoft
 Store; `py -3.13` selecciona el intérprete instalado.
 
 Backend: **http://127.0.0.1:8000**.
-Único endpoint: **http://127.0.0.1:8000/api/status/**.
-La raíz `/` devuelve 404 intencionalmente: no hay sitio Django ni panel administrativo.
+Endpoint de estado: **http://127.0.0.1:8000/api/status/**.
+API REST: **http://127.0.0.1:8000/api/**. Admin estándar: **http://127.0.0.1:8000/admin/**.
+La raíz `/` devuelve 404 intencionalmente. No se ha creado un superusuario; si se necesita usar Admin, ejecutar `python manage.py createsuperuser`. La API no exige autenticación.
 
 ```json
 {
@@ -125,10 +126,11 @@ La raíz `/` devuelve 404 intencionalmente: no hay sitio Django ni panel adminis
 }
 ```
 
-SQLite está configurado, pero todavía no hay modelos ni migraciones de negocio.
-`migrate` puede informar que no hay migraciones que aplicar. No se incorporan
-usuarios, autenticación, sesiones ni tablas de inventario. Las bases locales se
-ignoran conforme a `docs/GIT_WORKFLOW.md`; no existe una base demo versionada.
+Ejecutar `migrate` aplica `core/0001_initial` y las migraciones estándar requeridas por Django Admin.
+Los modelos son Medicamento, Establecimiento, Lote, Movimiento y Alerta. El estado y los saldos
+se calculan, sin tabla adicional de inventario. Usuarios y sesiones son dependencias del
+administrador incorporado; no se añade autenticación a la API. Las bases locales se ignoran
+conforme a `docs/GIT_WORKFLOW.md`; no existe una base demo versionada ni carga automática de datos.
 
 ### Frontend (segunda terminal)
 
@@ -152,7 +154,7 @@ Solo se permiten estos orígenes exactos en `backend/cloudmed_api/settings.py`:
 - `http://localhost:5100`
 - `http://127.0.0.1:5100`
 
-CORS se aplica a `/api/`, permite GET/OPTIONS y no admite credenciales ni orígenes
+CORS se aplica a `/api/`, permite GET/POST/PUT/PATCH/DELETE/HEAD/OPTIONS y no admite credenciales ni orígenes
 comodín. Configuración basada en la [documentación de django-cors-headers](https://pypi.org/project/django-cors-headers/).
 Si cambias los puertos, actualiza `launchSettings.json`, `CloudMedApi:BaseUrl`
 y los orígenes CORS según corresponda. Esta configuración es solo para desarrollo
@@ -169,5 +171,21 @@ local: Django tiene DEBUG activado y una clave pública de desarrollo.
 5. Comprueba el JSON con `Invoke-RestMethod http://127.0.0.1:8000/api/status/`.
 
 Las tarjetas y la tabla contienen ejemplos temporales claramente identificados.
-El campo y botón de búsqueda están deshabilitados; no hay búsqueda real, CRUD,
-movimientos, trazabilidad, alertas funcionales ni QR en esta entrega.
+El campo y botón de búsqueda siguen deshabilitados; las interfaces de los módulos permanecen
+como placeholders. La API ya ofrece CRUD, búsqueda, trazabilidad y verificación de lotes;
+los compañeros implementarán sus interfaces consumiendo [el contrato REST](docs/API_CONTRATOS.md).
+No se implementa QR.
+
+### Pruebas del dominio
+
+Desde `backend/`, con el entorno activado:
+
+```powershell
+python manage.py check
+python manage.py makemigrations --check
+python manage.py test
+```
+
+Los tests crean datos ficticios en una base aislada; no llenan la base local. Cubren contrato,
+validaciones, estados, saldos parciales, correcciones del historial, CORS, Admin y concurrencia.
+Para verificar Razor, ejecutar `dotnet build` desde `frontend/CloudMedTraceGT.Web`.

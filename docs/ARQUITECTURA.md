@@ -1,5 +1,7 @@
 # Arquitectura propuesta — CloudMed Trace GT
 
+> Actualización: para la API y las reglas implementadas, consultar [API_CONTRATOS.md](API_CONTRATOS.md). Este documento conserva la propuesta histórica; prevalecen las decisiones vigentes del contrato.
+
 **CloudColor · “Trazabilidad inteligente de medicamentos para Guatemala”**
 
 Estado: propuesta para revisión, 23 de septiembre de 2026. Esta fase solo documenta; ninguna carpeta de producto, entidad, API o decisión de backend está implementada.
