@@ -1,13 +1,66 @@
 @page
+@model CloudMedTraceGT.Web.Pages.Trazabilidad.IndexModel
 @{
     ViewData["Title"] = "Trazabilidad";
 }
-<section class="card">
-    <div class="card-body p-4 p-md-5">
-        <span class="badge demo-badge mb-3">Próximamente</span>
-        <h1>Trazabilidad</h1>
-        <p class="lead text-secondary">Módulo en desarrollo.</p>
-        <p>Esta página forma parte de la base común. Sus funcionalidades se implementarán en una fase posterior.</p>
-        <a class="btn btn-outline-primary" asp-page="/Index">Volver al inicio</a>
+<section id="trazabilidad" data-api-url="@Model.ApiBaseUrl" aria-labelledby="titulo">
+    <h1 id="titulo">Trazabilidad</h1>
+    <p class="text-secondary">Consulta el recorrido y las existencias actuales de un lote.</p>
+    <form id="buscar-lote" class="card mb-4" role="search">
+        <div class="card-body p-4">
+            <label for="numero-lote" class="form-label">Número de lote</label>
+            <div class="d-flex flex-column flex-sm-row gap-2">
+                <input id="numero-lote" name="numero" class="form-control" required maxlength="100"
+                       placeholder="Ej. AMX-260923" aria-describedby="buscar-ayuda" />
+                <button id="buscar-button" class="btn btn-primary" type="submit">Buscar</button>
+            </div>
+            <p id="buscar-ayuda" class="form-text mb-0">Escribe el número exacto, respetando mayúsculas y minúsculas.</p>
+        </div>
+    </form>
+    <noscript><div class="alert alert-warning">Activa JavaScript para consultar la trazabilidad.</div></noscript>
+    <div id="consulta-mensaje" role="status" aria-live="polite" aria-atomic="true"></div>
+    <div id="resultado" hidden>
+        <section class="card mb-4" aria-labelledby="lote-title">
+            <div class="card-body p-4">
+                <h2 id="lote-title" class="h5">Datos del lote</h2>
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Número de lote</dt><dd id="lote-numero" class="col-sm-8 text-break"></dd>
+                    <dt class="col-sm-4">Medicamento</dt><dd id="lote-medicamento" class="col-sm-8 text-break"></dd>
+                    <dt class="col-sm-4">Fecha de vencimiento</dt><dd id="lote-vencimiento" class="col-sm-8"></dd>
+                    <dt class="col-sm-4">Estado</dt><dd class="col-sm-8"><span id="lote-estado" class="badge"></span></dd>
+                </dl>
+                <p class="small text-secondary mb-0">Estado y saldos informados por el sistema al consultar. SEGURO indica ausencia de incidencias registradas; no es una certificación sanitaria.</p>
+            </div>
+        </section>
+        <section class="card mb-4" aria-labelledby="ubicaciones-title">
+            <div class="card-body p-4">
+                <h2 id="ubicaciones-title" class="h5">Ubicaciones actuales</h2>
+                <p id="sin-saldos" class="text-secondary mb-0" hidden>No hay establecimientos con saldo positivo.</p>
+                <div id="saldos-tabla" class="table-responsive" tabindex="0" role="region" aria-label="Saldos por establecimiento">
+                    <table class="table align-middle mb-0">
+                        <caption>Establecimientos con existencias según la API.</caption>
+                        <thead><tr><th scope="col">Establecimiento</th><th scope="col" class="text-end">Saldo positivo</th></tr></thead>
+                        <tbody id="saldos-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        <section class="card" aria-labelledby="historial-title">
+            <div class="card-body p-4">
+                <h2 id="historial-title" class="h5">Historial cronológico</h2>
+                <p class="small text-secondary">Del más antiguo al más reciente. Horas de Guatemala (UTC−06:00).</p>
+                <p id="sin-movimientos" class="text-secondary mb-0" hidden>El lote existe, pero todavía no tiene movimientos registrados.</p>
+                <div id="historial-tabla" class="table-responsive" tabindex="0" role="region" aria-label="Historial de movimientos">
+                    <table class="table align-middle mb-0">
+                        <caption>Orden de fecha e identificador proporcionado por la API.</caption>
+                        <thead><tr><th scope="col">Tipo</th><th scope="col">Origen</th><th scope="col">Destino</th><th scope="col" class="text-end">Cantidad</th><th scope="col">Fecha y hora</th></tr></thead>
+                        <tbody id="historial-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
     </div>
 </section>
+@section Scripts {
+    <script type="module" src="~/js/trazabilidad.js" asp-append-version="true"></script>
+}
