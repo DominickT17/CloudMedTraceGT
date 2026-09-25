@@ -1,0 +1,17 @@
+<div id="catalog" data-module="@ViewData["Module"]">
+    <div class="d-flex flex-wrap justify-content-between gap-3 mb-4">
+        <div><span class="badge demo-badge mb-2">Gestión de inventario</span><h1>@ViewData["Title"]</h1><p class="text-secondary">@ViewData["Description"]</p></div>
+        <button id="new-record" type="button" class="btn btn-primary align-self-start">Nuevo registro</button>
+    </div>
+    <form id="catalog-search" class="d-flex flex-wrap gap-2 mb-3"><label for="catalog-query" class="visually-hidden">Buscar registros</label><input id="catalog-query" class="form-control catalog-search" maxlength="100" placeholder="Buscar por nombre o número" /><button class="btn btn-outline-primary">Buscar</button><button id="catalog-refresh" type="button" class="btn btn-outline-secondary">Actualizar</button></form>
+    <p id="catalog-message" role="status" aria-live="polite"></p>
+    <p class="small text-secondary d-sm-none">Desliza la tabla hacia los lados para ver todos los campos y las acciones.</p>
+    <section class="card"><div class="table-responsive" tabindex="0" role="region" aria-label="Registros"><table class="table align-middle mb-0"><caption class="px-4">Selecciona Detalle para consultar un registro o gestionar sus datos.</caption><thead id="catalog-head"></thead><tbody id="catalog-body"></tbody></table></div></section>
+</div>
+<div class="modal fade" id="record-modal" tabindex="-1" aria-labelledby="record-title" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+    <div class="modal-header"><h2 id="record-title" class="modal-title h5"></h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+    <div class="modal-body"><p id="record-message" role="status" aria-live="polite"></p><form id="record-form"><fieldset id="record-fields"><div id="record-inputs" class="row g-3"></div><p id="record-hint" class="small text-secondary mt-3"></p><button id="record-save" class="btn btn-primary mt-3" type="submit">Guardar</button></fieldset></form><dl id="record-detail" class="row mb-0"></dl><div id="record-links" class="d-flex flex-wrap gap-2 mt-3"></div></div>
+    <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button></div>
+</div></div></div>
+<div class="modal fade" id="delete-modal" tabindex="-1" aria-labelledby="delete-title" aria-hidden="true"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h2 id="delete-title" class="modal-title h5">Confirmar eliminación</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div><div class="modal-body"><p id="delete-description"></p><p class="small text-secondary">Los registros con relaciones protegidas no pueden eliminarse.</p><p id="delete-message" role="status"></p></div><div class="modal-footer"><button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button><button id="delete-confirm" class="btn btn-danger" type="button">Eliminar registro</button></div></div></div></div>
+<noscript><p class="alert alert-warning">Activa JavaScript para gestionar los registros.</p></noscript>

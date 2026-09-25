@@ -1,13 +1,4 @@
-@page
-@{
-    ViewData["Title"] = "Medicamentos";
-}
-<section class="card">
-    <div class="card-body p-4 p-md-5">
-        <span class="badge demo-badge mb-3">Próximamente</span>
-        <h1>Medicamentos</h1>
-        <p class="lead text-secondary">Módulo en desarrollo.</p>
-        <p>Esta página forma parte de la base común. Sus funcionalidades se implementarán en una fase posterior.</p>
-        <a class="btn btn-outline-primary" asp-page="/Index">Volver al inicio</a>
-    </div>
-</section>
+@page "{mode?}/{id:int?}"
+@{ ViewData["Title"] = "Medicamentos"; ViewData["Module"] = "medicamentos"; ViewData["Description"] = "Consulta presentaciones, fabricantes y registros del catálogo."; }
+<partial name="_Catalog" />
+@section Scripts { <script src="~/js/catalogos.js" asp-append-version="true"></script> }

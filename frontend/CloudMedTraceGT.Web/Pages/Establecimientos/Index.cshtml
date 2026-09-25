@@ -1,13 +1,4 @@
-@page
-@{
-    ViewData["Title"] = "Establecimientos";
-}
-<section class="card">
-    <div class="card-body p-4 p-md-5">
-        <span class="badge demo-badge mb-3">Próximamente</span>
-        <h1>Establecimientos</h1>
-        <p class="lead text-secondary">Módulo en desarrollo.</p>
-        <p>Esta página forma parte de la base común. Sus funcionalidades se implementarán en una fase posterior.</p>
-        <a class="btn btn-outline-primary" asp-page="/Index">Volver al inicio</a>
-    </div>
-</section>
+@page "{mode?}/{id:int?}"
+@{ ViewData["Title"] = "Establecimientos"; ViewData["Module"] = "establecimientos"; ViewData["Description"] = "Consulta los destinos y orígenes de la distribución."; }
+<partial name="_Catalog" />
+@section Scripts { <script src="~/js/catalogos.js" asp-append-version="true"></script> }

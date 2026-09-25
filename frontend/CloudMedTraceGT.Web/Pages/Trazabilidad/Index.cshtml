@@ -1,13 +1,13 @@
 @page
-@{
-    ViewData["Title"] = "Trazabilidad";
-}
-<section class="card">
-    <div class="card-body p-4 p-md-5">
-        <span class="badge demo-badge mb-3">Próximamente</span>
-        <h1>Trazabilidad</h1>
-        <p class="lead text-secondary">Módulo en desarrollo.</p>
-        <p>Esta página forma parte de la base común. Sus funcionalidades se implementarán en una fase posterior.</p>
-        <a class="btn btn-outline-primary" asp-page="/Index">Volver al inicio</a>
-    </div>
-</section>
+@{ ViewData["Title"] = "Trazabilidad"; }
+<span class="badge demo-badge mb-2">Recorrido y existencias</span>
+<h1>Trazabilidad del lote</h1><p class="text-secondary">Conoce dónde está, por dónde pasó y cuál es su estado actual.</p>
+<form id="trace-form" class="card mb-4"><div class="card-body"><label for="trace-number" class="form-label">Número de lote</label><div class="d-flex flex-column flex-sm-row gap-2"><input id="trace-number" class="form-control" maxlength="100" required /><button id="trace-search" class="btn btn-primary" type="submit">Consultar trazabilidad</button></div></div></form>
+<p id="trace-message" role="status" aria-live="polite"></p>
+<div id="trace-result" hidden>
+<section class="card mb-4"><div class="card-body p-4"><div class="d-flex flex-wrap justify-content-between gap-2"><h2 id="trace-medicine" class="h4"></h2><span id="trace-state" class="align-self-start"></span></div><p id="trace-context" class="text-secondary"></p><dl id="trace-details" class="row"></dl><div id="trace-links" class="d-flex flex-wrap gap-2"></div></div></section>
+<section class="mb-4" aria-labelledby="balances-title"><div class="d-flex flex-wrap justify-content-between gap-2 mb-3"><h2 id="balances-title" class="h4">Saldos actuales</h2><span id="trace-total" class="fw-semibold text-success"></span></div><div id="trace-balances" class="row g-3"></div></section>
+<section class="card"><div class="card-body p-4"><h2 class="h4">Historial del lote</h2><p class="small text-secondary">Operaciones en orden cronológico. Cada traslado muestra su origen y destino.</p><ol id="trace-timeline" class="trace-timeline"></ol></div></section>
+</div>
+<noscript><p class="alert alert-warning">Activa JavaScript para consultar la trazabilidad.</p></noscript>
+@section Scripts { <script src="~/js/trazabilidad.js" asp-append-version="true"></script> }

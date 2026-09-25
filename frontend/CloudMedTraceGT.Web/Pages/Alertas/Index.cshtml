@@ -1,13 +1,27 @@
 @page
-@{
-    ViewData["Title"] = "Alertas";
-}
-<section class="card">
-    <div class="card-body p-4 p-md-5">
-        <span class="badge demo-badge mb-3">Próximamente</span>
-        <h1>Alertas</h1>
-        <p class="lead text-secondary">Módulo en desarrollo.</p>
-        <p>Esta página forma parte de la base común. Sus funcionalidades se implementarán en una fase posterior.</p>
-        <a class="btn btn-outline-primary" asp-page="/Index">Volver al inicio</a>
-    </div>
+@{ ViewData["Title"] = "Alertas"; }
+<div class="d-flex flex-wrap justify-content-between gap-3 mb-4"><div><h1>Alertas</h1><p class="text-secondary">Registra incidencias y consulta el estado actual de cada lote.</p></div><button id="refresh-alerts" class="btn btn-outline-primary align-self-start" type="button">Actualizar alertas</button></div>
+<p id="alerts-message" role="status" aria-live="polite">Cargando...</p>
+<section class="card mb-4"><div class="card-body p-4">
+    <h2 class="h5">Crear alerta</h2>
+    <form id="alert-form"><fieldset id="alert-fields" disabled>
+        <div class="row g-3">
+            <div class="col-md-7"><label for="alert-lot" class="form-label">Lote</label><select id="alert-lot" class="form-select" required><option value="">Cargando...</option></select></div>
+            <div class="col-md-5"><label for="alert-type" class="form-label">Tipo</label><select id="alert-type" class="form-select" required><option value="BLOQUEO">Bloqueo</option><option value="RETIRO">Retiro</option><option value="SOSPECHA">Sospecha</option></select></div>
+            <div class="col-12"><label for="alert-reason" class="form-label">Motivo</label><textarea id="alert-reason" class="form-control" rows="3" maxlength="1000" required></textarea></div>
+        </div>
+        <p id="selected-lot-state" class="small mt-3" aria-live="polite"></p>
+        <button id="create-alert" type="submit" class="btn btn-primary">Crear alerta</button>
+        <span class="small text-secondary ms-2">Se creará activa y bloqueará el lote.</span>
+    </fieldset></form>
+    <p id="alert-action-message" class="mt-3 mb-0" role="status" aria-live="polite"></p>
+</div></section>
+<section class="card"><div class="card-body p-4 pb-2"><h2 class="h5">Alertas registradas</h2></div>
+    <div class="table-responsive" tabindex="0" role="region" aria-label="Alertas registradas"><table class="table align-middle mb-0">
+        <caption class="px-4">Desactivar una alerta conserva su registro. Otra alerta activa puede mantener el lote bloqueado.</caption>
+        <thead><tr><th scope="col">Lote</th><th scope="col">Tipo</th><th scope="col">Motivo</th><th scope="col">Fecha</th><th scope="col">Alerta</th><th scope="col">Estado del lote</th><th scope="col">Acción</th></tr></thead>
+        <tbody id="alerts-body"><tr><td colspan="7">Cargando...</td></tr></tbody>
+    </table></div>
 </section>
+<noscript><p class="alert alert-warning mt-3">Activa JavaScript para gestionar alertas.</p></noscript>
+@section Scripts { <script src="~/js/alertas.js" asp-append-version="true"></script> }

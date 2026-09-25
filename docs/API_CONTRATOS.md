@@ -3,7 +3,7 @@
 **CloudColor · Trazabilidad inteligente de medicamentos para Guatemala.**
 
 Contrato implementado para el MVP local. Base: `http://127.0.0.1:8000/api/`.
-El frontend Razor conserva su dashboard demostrativo y páginas placeholder.
+Razor integra Dashboard, Medicamentos, Establecimientos, Lotes, Movimientos, Trazabilidad, Alertas y Verificación/QR.
 No hay datos demo cargados automáticamente ni integración con MSPAS.
 
 ## 1. Convenciones
@@ -35,6 +35,7 @@ No hay datos demo cargados automáticamente ni integración con MSPAS.
 
 | Consulta adicional | Resultado |
 |---|---|
+| GET `/api/dashboard/` | Conteos y los cinco movimientos más recientes (sección 12) |
 | GET `/api/status/` | Estado de comunicación, sin comprobar inventario |
 | GET `/api/` | Índice de recursos del DefaultRouter |
 | GET `/api/lotes/buscar/?numero=AMX-260923` | Un lote por número exacto; 400 sin número y 404 si no existe |
@@ -280,7 +281,7 @@ GET `/api/verificar/AMX-260923/`:
 }
 ```
 
-No expone IDs, saldos, movimientos, fabricantes ni motivos internos. No genera QR.
+No expone IDs, saldos, movimientos, fabricantes ni motivos internos. Django no genera QR; Razor lo genera con la URL pública.
 Ambas consultas devuelven 404 si el lote no existe. Los estados de estos ejemplos
 son ilustrativos y dependen de la fecha actual y de las alertas activas.
 
@@ -343,7 +344,8 @@ Sin la etiqueta `core`, ejecutar el test runner desde `backend/`.
 Migración de dominio: `core/migrations/0001_initial.py`, versionable.
 Las migraciones incorporadas de Django crean las tablas del administrador.
 SQLite, `.venv` y cachés siguen ignorados. Los tests usan una base de pruebas aislada
-que se destruye al terminar; los datos de ejemplo solo se crean allí.
+que se destruye al terminar. Opcionalmente, `python manage.py seed_demo` carga datos ficticios
+en la base local, de forma aditiva e idempotente; ver README.
 
 ## 11. Decisiones vigentes frente a la planificación histórica
 
@@ -357,4 +359,48 @@ Esta fase autorizada sustituye las propuestas incompatibles anteriores:
 - Django REST Framework + SQLite dentro de `backend/core`; sin servicios de negocio en Razor.
 
 Se conserva el rechazo de traslados bloqueados o vencidos y la protección de referencias.
-No se implementan inventario duplicado, QR, frontend CRUD, dashboard real ni despliegue público.
+No se implementa inventario duplicado ni despliegue público. Dashboard, Alertas, Verificación y QR
+son responsabilidad de Dóminick. La fase final completa los CRUD visuales faltantes sin cambiar contratos REST.
+
+## 12. Dashboard
+
+GET `/api/dashboard/` (solo lectura):
+
+```json
+{
+  "medicamentos": 0,
+  "lotes_activos": 0,
+  "alertas_activas": 0,
+  "movimientos": 0,
+  "ultimos_movimientos": []
+}
+```
+
+Ejemplo de base vacía. En una base con movimientos, el array contiene hasta cinco objetos
+con exactamente los campos del serializer de movimientos de la sección 6.
+Se ordena por fecha_movimiento descendente y después ID descendente.
+El frontend muestra nombres, no IDs; origen null se presenta como “Ingreso inicial”.
+Los conteos incluyen toda la base, no solo los datos demo.
+Lotes activos = SEGURO o PROXIMO_A_VENCER: vencimiento >= día local de Guatemala
+sin ninguna alerta activa. No cuenta VENCIDO/BLOQUEADO ni duplica lotes por alertas.
+Cuenta alertas activas, no lotes bloqueados. Con base vacía todos los conteos son 0 y el array es [].
+Las consultas se realizan dentro de una transacción para obtener una instantánea coherente.
+POST responde 405. Los endpoints existentes permanecen sin cambios.
+
+## 13. Consumidores Razor y QR
+
+- Todos los módulos administrativos usan api.js sobre /api/ del mismo origen; timeout de 8 s. Razor reenvía las rutas conocidas a CloudMedApi:BaseUrl, sin publicar loopback al navegador.
+- `/Verificar?lote=NUMERO` es la página pública.
+- `GET /Verificar?handler=Datos&lote=NUMERO` consulta el endpoint público Django desde
+  Razor (6 s) y proyecta sus cinco campos: 200, 400 sin número válido, 404 inexistente,
+  503 si Django no está disponible. Respuestas sin caché.
+- `GET /Verificar?handler=Qr&lote=NUMERO` devuelve image/png local con QRCoder.
+  Codifica solamente `{PublicBaseUrl}/Verificar?lote=NUMERO_CODIFICADO`.
+  Este handler valida formato/longitud, no existencia; la interfaz muestra QR solo tras
+  consultar correctamente el lote. No es una firma ni prueba de autenticidad.
+- PublicBaseUrl permite una dirección LAN sin cambiar endpoints ni exponer Django al teléfono.
+  Configuración y límites de red en README.
+- `/Trazabilidad?lote=NUMERO` muestra ficha, saldos e historial cronológico.
+- `GET /Verificar?handler=Enlace&lote=NUMERO` devuelve `{ "url": "...", "local": true }`; comparte PublicBaseUrl con Qr.
+- `GET /Verificar?handler=Qr&lote=NUMERO&descargar=true` descarga PNG con nombre `QR_NUMERO.png` sanitizado.
+- El modal QR se reutiliza desde Dashboard, Lotes y Trazabilidad. Datos/Enlace/Qr no se cachean.

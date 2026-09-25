@@ -1,38 +1,48 @@
-# División del equipo — CloudMed Trace GT
+# División definitiva del equipo — CloudMed Trace GT
 
-Cinco ramas de trabajo propuestas, una por integrante, reutilizadas durante el hackatón con PR pequeños. **Ninguna rama ha sido creada.** Todas las rutas de producto son futuras y relativas a la raíz del repositorio.
+Alertas, Verificación y QR pertenecen a Dóminick.
 
-| Integrante | Carnet | Rol | Rama | Responsabilidad | Archivos/carpetas principales | Dependencias |
-|---|---|---|---|---|---|---|
-| Dóminick Ricardo Cifuentes Tomás | 202408077 | Líder técnico, arquitecto, integrador y revisor general | `feat/dominick-plataforma` | Base Razor, interfaz común, contratos, dashboard e integración final | `src/CloudMedTraceGT.Web/Pages/Shared/`, `Pages/Index.cshtml` y `.cshtml.cs`, `Program.cs`, `.csproj`, `appsettings.json`, `wwwroot/css/site.css`, contratos comunes de `Services/`, `docs/` | Dashboard espera consultas de catálogos, lotes y alertas; acuerda arquitectura con Yeisson |
-| Yeisson Alexander Poroj Toc | 202408068 | Líder técnico, arquitecto, integrador y revisor general | `feat/yeisson-trazabilidad` | Persistencia, reglas de saldo/estado, movimientos, trazabilidad y pruebas críticas | `database/`, `tests/` de reglas, `Pages/Movimientos/`, `Pages/Trazabilidad/`, `Services/Movimientos/`, `Services/Trazabilidad/`; núcleo de backend elegido | Necesita catálogos y lotes; entrega estado/saldos a Paulo, Rodrigo y Dóminick |
-| Josué Uriel García Citalán | 202408004 | Responsable de medicamentos y apoyo de QA | `feat/josue-medicamentos` | Registro, listado y detalle de medicamentos; datos ficticios de medicamentos y pruebas de formularios; ensayo de navegación y accesibilidad | `Pages/Medicamentos/`, `ViewModels/Medicamentos/`, `Services/Medicamentos/`, `wwwroot/css/modules/medicamentos.css` si necesario; pruebas de su módulo | Layout y contratos iniciales; solicita cambios de esquema a Yeisson; entrega catálogo a Paulo |
-| Rodrigo Iván Hernández Martínez | 202508087 | Responsable de establecimientos y alertas | `feat/rodrigo-establecimientos-alertas` | Registro/listado/detalle de establecimientos; creación/listado de alertas y visualización de motivos | `Pages/Establecimientos/`, `Pages/Alertas/`, `ViewModels/Establecimientos/`, `ViewModels/Alertas/`, `Services/Establecimientos/`, `Services/Alertas/`; pruebas de sus módulos | Establecimientos puede empezar con base común; alertas espera lotes y reglas de estado de Yeisson |
-| Paulo Julian Lepe Calderon | 202308055 | Responsable de lotes y verificación | `feat/paulo-lotes-verificacion` | Crear/listar/detallar lotes, búsqueda, verificación y QR opcional | `Pages/Lotes/`, `Pages/Verificacion/`, `ViewModels/Lotes/`, `ViewModels/Verificacion/`, `Services/Lotes/`, `Services/Verificacion/`; pruebas de sus módulos | Medicamentos y establecimientos; ingreso transaccional y estado coordinados con Yeisson; QR espera verificación |
+| Integrante | Carnet | Rama | Responsabilidad |
+|---|---|---|---|
+| Dóminick Ricardo Cifuentes Tomás | 202408077 | feat/dominick-platform | Plataforma, Dashboard, layout, CSS/JS común, Alertas, Verificación, QR, integración, demo y revisión final |
+| Yeisson Alexander Poroj Toc | 202408068 | feat/yeisson-trazabilidad | Movimientos y Trazabilidad; revisión de reglas y saldos |
+| Josué Uriel García Citalán | 202408004 | feat/josue-medicamentos | Medicamentos |
+| Rodrigo Iván Hernández Martínez | 202508087 | feat/rodrigo-establecimientos | Establecimientos |
+| Paulo Julian Lepe Calderon | 202308055 | feat/paulo-lotes | Lotes |
 
-Los prefijos `Pages/`, `Services/`, `ViewModels/` y `wwwroot/` de la tabla corresponden a `src/CloudMedTraceGT.Web/`. Los contratos globales los integra Dóminick; los adaptadores de cada módulo pertenecen a su dueño. No crear hojas CSS vacías por cumplir la tabla.
+## Propiedad de archivos
 
-## Responsabilidad de backend sin fijar lenguaje
+Dentro de frontend/CloudMedTraceGT.Web/:
 
-Cada dueño entrega su módulo vertical: página, validaciones de entrada, adaptador y operaciones de negocio correspondientes. Si se elige API, se asignará `backend/<modulo>/` según el framework antes de programar. Si se eligen servicios locales, se usarán `Application/<Modulo>/` e `Infrastructure/<Modulo>/` dentro del proyecto web. Estas alternativas son excluyentes.
+- Dóminick: Pages/Index.cshtml*, Pages/Shared/, Pages/Alertas/, Pages/Verificar/,
+  wwwroot/js/{api,site,dashboard,alertas,verificar}.js, wwwroot/css/site.css,
+  Program.cs, proyecto, configuración y documentación común.
+- Josué: Pages/Medicamentos/ y archivos exclusivos de su módulo.
+- Rodrigo: Pages/Establecimientos/ y archivos exclusivos de su módulo.
+- Paulo: Pages/Lotes/ y archivos exclusivos de su módulo.
+- Yeisson: Pages/Movimientos/, Pages/Trazabilidad/ y archivos exclusivos de sus módulos.
 
-Yeisson conserva la infraestructura de persistencia, esquema y operaciones transaccionales compartidas; no debe implementar por sí solo todos los CRUD. Paulo llama la operación atómica de crear lote e ingreso acordada con Yeisson. Rodrigo crea alertas a través del núcleo compartido que coordina bloqueos y movimientos. Josué compensa un módulo más pequeño con datos de demo, QA transversal y ensayo; no modifica páginas ajenas durante ese QA, reporta al dueño.
+Los endpoints ya existen en backend/core/. No crear modelos/APIs paralelas.
+Cambios de contratos, esquema y reglas se coordinan entre Dóminick y Yeisson.
+Dashboard backend y seed común se incluyen en la entrega de Dóminick.
 
-## Archivos compartidos y conflictos previsibles
+## Evitar conflictos
 
-| Riesgo | Dueño que integra | Regla preventiva |
-|---|---|---|
-| Navbar, layout, estilos globales y componentes de estado | Dóminick | Los demás solicitan cambios; usan Bootstrap y clases comunes |
-| Program.cs, proyecto, paquetes y configuración | Dóminick | Un solo PR para agregar dependencias aprobadas; Yeisson revisa impacto técnico |
-| Esquema, migraciones, semillas comunes y conexión | Yeisson | Una secuencia de cambios; dueños entregan necesidades y datos, sin migraciones simultáneas incompatibles |
-| DTO, rutas REST y códigos de error | Dóminick con revisión de Yeisson | Acordar antes; cambiar contrato y consumidores coordinadamente |
-| Creación de lote e ingreso | Paulo + Yeisson; Yeisson integra núcleo transaccional | Una única operación; no insertar dos ingresos desde módulos distintos |
-| Estado de lote, alerta y autorización de transferencia | Yeisson | Una regla central; Rodrigo y Paulo consumen resultado |
-| Búsqueda por número repetido | Paulo | Mostrar medicamento para desambiguar; todos navegan por LoteId |
-| Documentación compartida | Dóminick | Los demás proponen cambios en PR; evitar reorganizaciones simultáneas |
+- Layout, configuración, .csproj y CSS/JS compartidos los integra Dóminick.
+- La autorización de fase final permite a Dóminick completar las interfaces faltantes en su workspace.
+  La asignación original sirve para coordinación; no bloquea esta finalización. Conservar rutas/campos REST.
+- No crear migraciones simultáneas incompatibles; esta fase no cambia modelos ni migraciones.
+- Crear lote no genera ingreso: Paulo y Yeisson coordinan el ingreso separado para no duplicarlo.
+- Número de lote único global. Yeisson debe consumir /Trazabilidad?lote=NUMERO.
+- No versionar SQLite, .venv, bin, obj ni IP LAN personal.
+- Revisar diferencias; evitar reformateos masivos y sobrescribir cambios comunes con versiones antiguas.
+- Integraciones Git únicamente con autorización.
 
-## Revisión y equilibrio
+Los nombres antiguos de ramas y la asignación de Alertas a Rodrigo o QR a Paulo quedan sustituidos.
 
-Dóminick revisa integración, UI y contratos; Yeisson revisa integridad de datos, reglas y transacciones. Se revisan mutuamente sus PR. Los otros tres pueden revisar módulos ajenos y ejecutar pruebas, pero al menos un líder aprueba cada integración. Las horas reservadas para revisión cuentan como trabajo de los líderes: si se acumulan PR, Josué apoya validación y se aplaza QR.
+## Finalización integral
 
-Cada integrante mantiene su rama y evita modificar los archivos compartidos por iniciativa propia. Cambios transversales necesarios se coordinan con el dueño, no se resuelven copiando modelos ni creando servicios paralelos.
+Se completaron Medicamentos, Establecimientos, Lotes, Movimientos y Trazabilidad en
+feat/dominick-platform. Esta entrega no atribuye esos cambios a los compañeros ni verifica sus ramas.
+Los archivos compartidos nuevos son _Catalog.cshtml, _QrModal.cshtml, catalogos.js y qr.js;
+Trazabilidad tiene su propio trazabilidad.js. Comparar diferencias antes de una futura integración.

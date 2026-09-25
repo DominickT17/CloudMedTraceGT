@@ -1,0 +1,16 @@
+@page
+@model CloudMedTraceGT.Web.Pages.Verificar.IndexModel
+@{ ViewData["Title"] = "Verificación de medicamento"; ViewData["PublicPage"] = true; }
+<div class="verification mx-auto">
+    <div class="text-center mb-4"><span class="badge demo-badge mb-3">Consulta pública</span><h1 class="h3">Verificación de medicamento</h1><p class="text-secondary">Consulta el estado registrado de un lote.</p></div>
+    <form method="get" class="mb-4"><label for="verify-number" class="form-label">Número de lote</label><div class="d-flex gap-2"><input id="verify-number" name="lote" class="form-control" value="@Model.Lote" maxlength="100" required /><button class="btn btn-primary" type="submit">Consultar</button></div></form>
+    <p id="verify-message" role="status" aria-live="polite">@(string.IsNullOrEmpty(Model.Lote) ? "Introduce un número de lote para consultar." : "Cargando...")</p>
+    <section id="verification-result" class="card" data-lote="@Model.Lote" hidden><div class="card-body p-4">
+        <h2 id="verify-medicine" class="h4"></h2><p id="verify-presentation" class="text-secondary"></p>
+        <dl><dt>Número de lote</dt><dd id="verify-lot"></dd><dt>Fecha de vencimiento</dt><dd id="verify-expiry"></dd></dl>
+        <p><span id="verify-state"></span></p><p id="verify-context" class="mb-0"></p>
+    </div></section>
+    <p class="small text-secondary text-center mt-4">Prototipo académico de CloudColor. El resultado refleja los registros del sistema; no es una certificación sanitaria ni una consulta oficial del MSPAS.</p>
+</div>
+<noscript><p class="alert alert-warning">Activa JavaScript para consultar la verificación.</p></noscript>
+@section Scripts { <script src="~/js/verificar.js" asp-append-version="true"></script> }

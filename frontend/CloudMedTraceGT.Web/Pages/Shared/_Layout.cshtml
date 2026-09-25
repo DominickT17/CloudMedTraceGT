@@ -1,11 +1,14 @@
 @{
     var currentPage = ViewContext.RouteData.Values["page"]?.ToString();
+    bool IsActive(string module) => currentPage?.StartsWith($"/{module}/", StringComparison.OrdinalIgnoreCase) == true;
+    var publicPage = ViewData["PublicPage"] is true;
     var modules = new[] { "Medicamentos", "Lotes", "Establecimientos", "Movimientos", "Trazabilidad", "Alertas" };
 }
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8" />
+    <meta name="cloudmed-api" content="@Url.Content("~/")" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] · CloudMed Trace GT</title>
     <link rel="icon" href="~/favicon.ico" />
@@ -21,6 +24,8 @@
                     <span class="brand-name">CloudMed Trace GT</span>
                     <small class="d-block text-secondary">by CloudColor</small>
                 </a>
+                @if (!publicPage)
+                {
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
                         aria-controls="mainNav" aria-expanded="false" aria-label="Abrir navegación">
                     <span class="navbar-toggler-icon"></span>
@@ -31,10 +36,11 @@
                         @foreach (var module in modules)
                         {
                             var modulePage = $"/{module}/Index";
-                            <li class="nav-item"><a class="nav-link @(currentPage == modulePage ? "active" : "")" aria-current="@(currentPage == modulePage ? "page" : null)" asp-page="@modulePage">@module</a></li>
+                            <li class="nav-item"><a class="nav-link @(IsActive(module) ? "active" : "")" aria-current="@(IsActive(module) ? "page" : null)" asp-page="@modulePage" asp-route-mode="" asp-route-id="">@module</a></li>
                         }
                     </ul>
                 </div>
+                }
             </div>
         </nav>
     </header>
@@ -47,8 +53,11 @@
             <span>Prototipo universitario · Guatemala</span>
         </div>
     </footer>
+    <partial name="_QrModal" />
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/api.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/qr.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

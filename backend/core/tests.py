@@ -388,3 +388,140 @@ class ConcurrenciaTests(TransactionTestCase):
             cantidad=4000, tipo_movimiento='INGRESO'))
         self.assertEqual(saldo_en_establecimiento(self.lote, self.origen), 4000)
         self.assertEqual(Movimiento.objects.count(), 1)
+
+
+class DashboardDemoTests(APITestCase):
+    def test_dashboard_vacio(self):
+        response = self.client.get('/api/dashboard/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data, dict(medicamentos=0, lotes_activos=0, alertas_activas=0, movimientos=0, ultimos_movimientos=[]))
+
+    def test_conteos_estados_y_ultimos_cinco(self):
+        from django.core.management import call_command
+        from io import StringIO
+        call_command('seed_demo', stdout=StringIO())
+        datos = self.client.get('/api/dashboard/').data
+        self.assertEqual([datos[k] for k in ['medicamentos','lotes_activos','alertas_activas','movimientos']], [10,8,2,32])
+        esperados = list(Movimiento.objects.order_by('-fecha_movimiento', '-id').values_list('pk', flat=True)[:5])
+        self.assertEqual([m['id'] for m in datos['ultimos_movimientos']], esperados)
+        self.assertIn('destino_nombre', datos['ultimos_movimientos'][0])
+        lote = Lote.objects.get(numero_lote='CMT-AMX-01')
+        lote.fecha_vencimiento = timezone.localdate() - timedelta(days=1)
+        lote.save()
+        self.assertEqual(self.client.get('/api/dashboard/').data['lotes_activos'], 7)
+
+    def test_alertas_multiples_no_duplican_conteos(self):
+        _, _, _, lote = preparar_dominio()
+        for tipo in ['BLOQUEO', 'RETIRO']:
+            Alerta.objects.create(lote=lote, tipo=tipo, motivo='Demo')
+        datos = self.client.get('/api/dashboard/').data
+        self.assertEqual(datos['alertas_activas'], 2)
+        self.assertEqual(datos['lotes_activos'], 0)
+        for alerta in lote.alertas.all():
+            alerta.activa = False
+            alerta.save()
+        self.assertEqual(self.client.get('/api/dashboard/').data['lotes_activos'], 1)
+
+    def test_limite_del_dia_de_vencimiento(self):
+        _, _, _, lote = preparar_dominio()
+        lote.fecha_vencimiento = timezone.localdate()
+        lote.save()
+        self.assertEqual(self.client.get('/api/dashboard/').data['lotes_activos'], 1)
+
+    def test_seed_idempotente_y_conserva_cambios(self):
+        from django.core.management import call_command
+        from io import StringIO
+        call_command('seed_demo', stdout=StringIO())
+        antes = {model.__name__: list(model.objects.values()) for model in [Medicamento, Establecimiento, Lote, Movimiento, Alerta]}
+        call_command('seed_demo', stdout=StringIO())
+        despues = {model.__name__: list(model.objects.values()) for model in [Medicamento, Establecimiento, Lote, Movimiento, Alerta]}
+        self.assertEqual(antes, despues)
+        alerta = Alerta.objects.first()
+        alerta.activa = False
+        alerta.save()
+        call_command('seed_demo', stdout=StringIO())
+        alerta.refresh_from_db()
+        self.assertFalse(alerta.activa)
+        for lote in Lote.objects.all():
+            self.assertEqual(sum(s['cantidad'] for s in saldos_positivos(lote)), lote.cantidad_inicial)
+            self.assertTrue(all(s['cantidad'] > 0 for s in saldos_positivos(lote)))
+
+    def test_seed_preserva_datos_ajenos(self):
+        _, _, _, lote = preparar_dominio()
+        from django.core.management import call_command
+        from io import StringIO
+        call_command('seed_demo', stdout=StringIO())
+        lote.refresh_from_db()
+        self.assertEqual(lote.numero_lote, 'AMX-260923')
+        self.assertEqual(lote.movimientos.count(), 0)
+
+    def test_dashboard_es_solo_lectura(self):
+        self.assertEqual(self.client.post('/api/dashboard/', {}).status_code, 405)
+
+    def test_seed_ampliado_estados_fechas_y_nombres(self):
+        from django.core.management import call_command
+        from io import StringIO
+        from collections import Counter
+        call_command('seed_demo', stdout=StringIO())
+        self.assertEqual(Medicamento.objects.count(), 10)
+        self.assertEqual(Establecimiento.objects.count(), 7)
+        self.assertEqual(Lote.objects.count(), 12)
+        self.assertEqual(Counter(calcular_estado(lote) for lote in Lote.objects.all()),
+                         {'SEGURO': 6, 'PROXIMO_A_VENCER': 2, 'BLOQUEADO': 2, 'VENCIDO': 2})
+        for model, field in [(Medicamento, 'fabricante'), (Medicamento, 'registro_sanitario'),
+                             (Establecimiento, 'nombre'), (Lote, 'numero_lote'), (Alerta, 'motivo')]:
+            self.assertFalse(model.objects.filter(**{field + '__icontains': 'demo'}).exists())
+        for lote in Lote.objects.all():
+            self.assertLess(lote.fecha_fabricacion, lote.fecha_vencimiento)
+            if calcular_estado(lote) == 'VENCIDO':
+                self.assertFalse(lote.movimientos.filter(tipo_movimiento='TRASLADO').exists())
+
+    def test_seed_limpia_escenario_anterior_sin_cambiar_ids_ni_saldos(self):
+        from django.core.management import call_command
+        from io import StringIO
+        medicamento, origen, destino, lote = preparar_dominio()
+        medicamento.registro_sanitario = 'CMT-DEMO-AMX-SEGURO'
+        medicamento.fabricante = 'CloudColor demo ficticia'
+        medicamento.save()
+        origen.nombre += ' (demo CloudColor)'
+        origen.save()
+        lote.numero_lote = 'DEMO-AMX-SEGURO'
+        lote.save()
+        Movimiento.objects.create(lote=lote, destino=origen, cantidad=4321, tipo_movimiento='INGRESO')
+        call_command('seed_demo', stdout=StringIO())
+        lote.refresh_from_db(); origen.refresh_from_db(); medicamento.refresh_from_db()
+        self.assertEqual(lote.numero_lote, 'CMT-AMX-01')
+        self.assertEqual(origen.nombre, 'Bodega Central')
+        self.assertEqual(medicamento.presentacion, '500 mg cápsulas')
+        self.assertEqual(lote.movimientos.count(), 1)
+        self.assertEqual(saldo_en_establecimiento(lote, origen), 4321)
+
+    def test_seed_colision_legacy_revierte_transaccion(self):
+        from django.core.management import call_command, CommandError
+        from io import StringIO
+        medicamento, origen, _, lote = preparar_dominio()
+        medicamento.registro_sanitario = 'CMT-DEMO-AMX-SEGURO'
+        medicamento.fabricante = 'CloudColor demo ficticia'
+        medicamento.save()
+        Medicamento.objects.create(**(medicamento_datos() | {'registro_sanitario': 'CMT-ACA-001'}))
+        origen.nombre += ' (demo CloudColor)'; origen.save()
+        with self.assertRaises(CommandError):
+            call_command('seed_demo', stdout=StringIO())
+        origen.refresh_from_db()
+        self.assertTrue(origen.nombre.endswith('(demo CloudColor)'))
+        self.assertEqual(Lote.objects.count(), 1)
+
+    def test_seed_conserva_fechas_y_ediciones_en_ejecuciones_posteriores(self):
+        from django.core.management import call_command
+        from io import StringIO
+        call_command('seed_demo', stdout=StringIO())
+        lote = Lote.objects.get(numero_lote='CMT-AMX-01')
+        fecha = lote.fecha_vencimiento
+        medicamento = lote.medicamento
+        medicamento.nombre = 'Nombre editado'; medicamento.save()
+        with patch('core.management.commands.seed_demo.timezone.localdate',
+                   return_value=timezone.localdate() + timedelta(days=400)):
+            call_command('seed_demo', stdout=StringIO())
+        lote.refresh_from_db(); medicamento.refresh_from_db()
+        self.assertEqual(lote.fecha_vencimiento, fecha)
+        self.assertEqual(medicamento.nombre, 'Nombre editado')

@@ -1,36 +1,33 @@
-// La API solo comprueba conectividad; las tarjetas siguen siendo demostrativas.
-async function checkApiStatus() {
-    const section = document.getElementById("system-status");
-    if (!section) return;
-
-    const state = document.getElementById("api-state");
-    const details = document.getElementById("api-details");
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-
-    try {
-        const response = await fetch(section.dataset.statusUrl, {
-            headers: { Accept: "application/json" },
-            signal: controller.signal,
-            credentials: "omit",
-            cache: "no-store"
-        });
-        if (!response.ok) throw new Error("Respuesta HTTP no válida");
-        const data = await response.json();
-        if (data.sistema !== "CloudMed Trace GT" || data.empresa !== "CloudColor" ||
-            data.estado !== "API funcionando") {
-            throw new Error("Respuesta inesperada");
-        }
-        state.textContent = "API conectada";
-        state.className = "fw-semibold text-success mb-2";
-        details.textContent = `${data.sistema} · ${data.empresa}`;
-    } catch {
-        state.textContent = "API no disponible";
-        state.className = "fw-semibold text-secondary mb-2";
-        details.textContent = "No se pudo conectar. Comprueba que Django esté iniciado y recarga la página.";
-    } finally {
-        clearTimeout(timeout);
+// Funciones de presentación compartidas; el estado siempre procede de Django.
+Object.assign(CloudMed, {
+    states: {
+        SEGURO: ["Seguro", "state-safe", "El lote se encuentra habilitado en el sistema."],
+        PROXIMO_A_VENCER: ["Próximo a vencer", "state-soon", "El lote se encuentra próximo a su fecha de vencimiento."],
+        VENCIDO: ["Vencido", "state-expired", "El lote ha superado su fecha de vencimiento."],
+        BLOQUEADO: ["Bloqueado", "state-blocked", "El lote tiene una alerta activa. No debe continuar su distribución."]
+    },
+    stateBadge(element, state) {
+        const info = this.states[state] || ["Sin verificar", "text-bg-secondary", "No se pudo verificar el estado."];
+        element.className = "badge " + info[1]; element.textContent = info[0];
+        return info[2];
+    },
+    date(value) {
+        // Una fecha de calendario no se convierte a UTC para evitar cambiar el día.
+        const parts = String(value || "").split("-");
+        return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : "—";
+    },
+    instant(value) {
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString("es-GT", { timeZone: "America/Guatemala", dateStyle: "short", timeStyle: "short" });
+    },
+    message(element, text, error = false) {
+        element.textContent = text; element.className = error ? "text-danger" : "text-secondary";
+    },
+    tableMessage(body, columns, text) {
+        const row = document.createElement("tr"), cell = document.createElement("td");
+        cell.colSpan = columns; cell.textContent = text; row.append(cell); body.replaceChildren(row);
+    },
+    cell(row, value) {
+        const cell = document.createElement("td"); cell.textContent = value ?? "—"; row.append(cell); return cell;
     }
-}
-
-checkApiStatus();
+});

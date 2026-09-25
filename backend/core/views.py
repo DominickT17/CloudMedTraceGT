@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.db.models import Q
+from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.exceptions import NotFound, ValidationError
@@ -97,3 +98,18 @@ def trazabilidad(request, numero_lote):
 @api_view(['GET'])
 def verificar(request, numero_lote):
     return Response(VerificacionSerializer(obtener_lote(numero_lote)).data)
+
+
+@api_view(['GET'])
+@transaction.atomic
+def dashboard(request):
+    # SEGURO o PROXIMO_A_VENCER: no vencido y sin alerta activa.
+    activos = Lote.objects.filter(fecha_vencimiento__gte=timezone.localdate()).exclude(alertas__activa=True)
+    ultimos = Movimiento.objects.select_related('lote', 'origen', 'destino').order_by('-fecha_movimiento', '-id')[:5]
+    return Response({
+        'medicamentos': Medicamento.objects.count(),
+        'lotes_activos': activos.count(),
+        'alertas_activas': Alerta.objects.filter(activa=True).count(),
+        'movimientos': Movimiento.objects.count(),
+        'ultimos_movimientos': MovimientoSerializer(ultimos, many=True).data,
+    })

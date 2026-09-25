@@ -14,6 +14,28 @@ h1 { color: var(--cloudmed-blue); font-size: clamp(1.8rem, 4vw, 2.5rem); }
 .table td, .table th { padding: 1rem; }
 .table td:first-child, .table th:first-child { padding-left: 1.5rem; }
 .table td:last-child, .table th:last-child { padding-right: 1.5rem; }
-.table caption { caption-side: bottom; }
+.table caption { caption-side: bottom; padding-bottom: 1rem; }
 .skip-link:focus { display: block; padding: .75rem; background: white; }
 a:focus-visible, button:focus-visible, [tabindex]:focus-visible { outline: 3px solid #197150; outline-offset: 3px; }
+
+.state-safe { background: #dff3e7; color: #14532d; }
+.state-soon { background: #fff1ba; color: #704d00; }
+.state-expired { background: #fee2e2; color: #a51d25; }
+.state-blocked { background: #751b2b; color: white; }
+.verification { max-width: 620px; }
+.verification dd, #search-result dd { overflow-wrap: anywhere; }
+.alert-reason { min-width: 180px; max-width: 360px; overflow-wrap: anywhere; white-space: pre-wrap; }
+fieldset:disabled { opacity: .75; }
+#shared-qr-image { background: white; }
+.catalog-search { flex: 1 1 180px; width: auto; }
+.table td { overflow-wrap: break-word; max-width: 300px; min-width: 150px; }
+.modal dd, #trace-result dd, .trace-step { overflow-wrap: anywhere; }
+.balance-card { border-left: 4px solid var(--cloudmed-green); }
+.badge { align-self: flex-start; }
+#trace-search { white-space: nowrap; }
+.trace-timeline { list-style: none; padding-left: 1.5rem; margin: 1.5rem 0 0 .5rem; border-left: 2px solid #c4d9e9; }
+.trace-step { position: relative; padding: 0 0 2rem 1rem; }
+.trace-step:last-child { padding-bottom: .5rem; }
+.trace-step::before { content: ""; position: absolute; width: 14px; height: 14px; border-radius: 50%; background: var(--cloudmed-green); left: -2rem; top: .2rem; border: 3px solid #f4f7fa; }
+@media (max-width: 575px) { .card-body.p-4 { padding: 1rem !important; } .navbar-brand { margin-right: .25rem; } .brand-name { font-size: 1.1rem; } }
+@media (max-width: 375px) { .summary-card .card-body { padding: .65rem; } .summary-card h2 { font-size: .8rem; } }

@@ -1,73 +1,65 @@
 @page
 @model IndexModel
-@{
-    ViewData["Title"] = "Inicio";
-    // Datos temporales de presentación: no provienen de la base de datos.
-    var summaries = new[] { ("Medicamentos", "24"), ("Lotes activos", "38"), ("Alertas", "3"), ("Movimientos", "126") };
-}
-<section class="mb-4" aria-labelledby="dashboard-title">
-    <span class="badge demo-badge mb-3">Base común · Demostración</span>
-    <h1 id="dashboard-title" class="fw-bold">CloudMed Trace GT</h1>
-    <p class="lead text-secondary mb-2">Trazabilidad inteligente de medicamentos para Guatemala</p>
-    <p class="small text-secondary mb-0">Sistema de Trazabilidad de Medicamentos · Todos los valores y movimientos son ficticios y temporales.</p>
+@{ ViewData["Title"] = "Inicio"; }
+<section class="mb-4 d-flex flex-wrap align-items-start justify-content-between gap-3">
+    <div><span class="badge demo-badge mb-3">Panel general</span>
+        <h1 class="fw-bold">CloudMed Trace GT</h1>
+        <p class="lead text-secondary mb-1">Trazabilidad inteligente de medicamentos para Guatemala</p>
+        <p class="small text-secondary mb-0">Consulta lotes, movimientos y alertas registrados en el sistema.</p>
+    </div>
+    <button id="refresh-dashboard" type="button" class="btn btn-outline-primary">Actualizar panel</button>
 </section>
+<p id="dashboard-message" role="status" aria-live="polite">Cargando...</p>
 <div class="row g-3 mb-4">
-    @foreach (var (label, value) in summaries)
+    @foreach (var item in new[] { ("medicamentos", "Medicamentos", "Catálogo registrado"), ("lotes_activos", "Lotes activos", "Seguros o próximos a vencer"), ("alertas_activas", "Alertas activas", "Incidencias pendientes"), ("movimientos", "Movimientos", "Operaciones registradas") })
     {
-        <div class="col-6 col-lg-3">
-            <section class="card summary-card h-100">
-                <div class="card-body">
-                    <h2 class="h6 text-secondary">@label</h2>
-                    <p class="display-6 fw-semibold mb-1">@value</p>
-                    <span class="small text-secondary">Valor de ejemplo</span>
-                </div>
-            </section>
-        </div>
+        <div class="col-6 col-lg-3"><section class="card summary-card h-100"><div class="card-body">
+            <h2 class="h6 text-secondary">@item.Item2</h2>
+            <p class="display-6 fw-semibold mb-1" data-count="@item.Item1">—</p>
+            <span class="small text-secondary">@item.Item3</span>
+        </div></section></div>
     }
 </div>
 <div class="row g-4 mb-4">
-    <div class="col-lg-8">
-        <section class="card h-100" aria-labelledby="search-title">
-            <div class="card-body p-4">
-                <h2 id="search-title" class="h5">Buscar lote</h2>
-                <p id="search-help" class="text-secondary small">Vista de ejemplo. La búsqueda estará disponible en una próxima fase.</p>
-                <label class="form-label" for="lot-number">Número de lote</label>
-                <div class="d-flex flex-column flex-sm-row gap-2">
-                    <input id="lot-number" class="form-control" type="text" placeholder="Ej. DEMO-001" aria-describedby="search-help" disabled />
-                    <button class="btn btn-primary px-4" type="button" disabled>Buscar</button>
-                </div>
+    <div class="col-lg-8"><section class="card h-100"><div class="card-body p-4">
+        <h2 class="h5">Buscar lote</h2>
+        <form id="search-form">
+            <label class="form-label" for="lot-number">Número de lote</label>
+            <div class="d-flex flex-column flex-sm-row gap-2">
+                <input id="lot-number" name="numero" class="form-control" maxlength="100" required placeholder="Número de lote" />
+                <button id="search-button" class="btn btn-primary px-4" type="submit">Buscar</button>
             </div>
-        </section>
-    </div>
-    <div class="col-lg-4">
-        <section id="system-status" class="card h-100" data-status-url="@Model.ApiStatusUrl" aria-labelledby="status-title">
-            <div class="card-body p-4">
-                <h2 id="status-title" class="h5">Estado del sistema</h2>
-                <div role="status" aria-live="polite" aria-atomic="true">
-                    <p id="api-state" class="fw-semibold text-secondary mb-2">Comprobando conexión…</p>
-                    <p id="api-details" class="small text-secondary mb-0">Verificando disponibilidad de la API.</p>
-                </div>
-                <noscript><p class="small mt-2">Activa JavaScript para comprobar la conexión.</p></noscript>
+        </form>
+        <p id="search-message" class="small mt-3 mb-0" role="status" aria-live="polite"></p>
+        <div id="search-result" class="mt-3" hidden>
+            <div class="d-flex flex-wrap justify-content-between gap-2 mb-3"><h3 id="result-medicine" class="h5 mb-0"></h3><span id="result-state"></span></div>
+            <dl class="row mb-2">
+                <dt class="col-sm-5">Número de lote</dt><dd class="col-sm-7" id="result-number"></dd>
+                <dt class="col-sm-5">Fabricación</dt><dd class="col-sm-7" id="result-made"></dd>
+                <dt class="col-sm-5">Vencimiento</dt><dd class="col-sm-7" id="result-expiry"></dd>
+                <dt class="col-sm-5">Cantidad inicial</dt><dd class="col-sm-7" id="result-quantity"></dd>
+            </dl>
+            <div class="d-flex flex-wrap gap-2">
+                <a id="trace-link" class="btn btn-outline-primary">Ver trazabilidad</a>
+                <a id="verify-link" class="btn btn-primary">Verificar lote</a>
+                <button id="qr-link" type="button" class="btn btn-outline-secondary">Generar QR</button>
             </div>
-        </section>
-    </div>
-</div>
-<section class="card" aria-labelledby="movements-title">
-    <div class="card-body p-4 pb-0">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-            <h2 id="movements-title" class="h5 mb-0">Últimos movimientos</h2>
-            <span class="badge demo-badge">Datos de demostración</span>
         </div>
-    </div>
-    <div class="table-responsive" tabindex="0" role="region" aria-label="Tabla de movimientos de ejemplo">
-        <table class="table align-middle mb-0">
-            <caption class="px-4 small">Ejemplos ficticios; no representan operaciones registradas.</caption>
-            <thead><tr><th scope="col">Lote</th><th scope="col">Medicamento</th><th scope="col">Origen → Destino</th><th scope="col">Cantidad</th><th scope="col">Tipo</th></tr></thead>
-            <tbody>
-                <tr><td class="fw-semibold text-nowrap">DEMO-001</td><td>Amoxicilina 500 mg</td><td>Bodega demo → Centro de salud demo</td><td>100</td><td><span class="badge text-bg-light">Transferencia</span></td></tr>
-                <tr><td class="fw-semibold text-nowrap">DEMO-002</td><td>Acetaminofén 500 mg</td><td>Ingreso inicial → Bodega demo</td><td>250</td><td><span class="badge demo-badge">Ingreso</span></td></tr>
-                <tr><td class="fw-semibold text-nowrap">DEMO-003</td><td>Suero oral</td><td>Bodega demo → Hospital demo</td><td>80</td><td><span class="badge text-bg-light">Transferencia</span></td></tr>
-            </tbody>
+    </div></section></div>
+    <div class="col-lg-4"><section class="card h-100"><div class="card-body p-4">
+        <h2 class="h5">Estado del sistema</h2>
+        <div role="status" aria-live="polite"><p id="api-state" class="fw-semibold mb-2">Cargando...</p><p id="api-details" class="small text-secondary mb-0"></p></div>
+        <hr /><p class="small text-secondary">Una alerta activa bloquea el lote en las consultas del sistema.</p>
+        <a asp-page="/Alertas/Index" class="btn btn-outline-primary">Gestionar alertas</a>
+    </div></section></div>
+</div>
+<section class="card"><div class="card-body p-4 pb-2"><h2 class="h5">Últimos movimientos</h2><p class="small text-secondary mb-0">Las cinco operaciones más recientes.</p></div>
+    <div class="table-responsive" tabindex="0" role="region" aria-label="Últimos movimientos">
+        <table class="table align-middle mb-0"><caption class="px-4">Movimientos registrados, del más reciente al más antiguo.</caption>
+            <thead><tr><th scope="col">Lote</th><th scope="col">Origen</th><th scope="col">Destino</th><th scope="col">Cantidad</th><th scope="col">Tipo</th><th scope="col">Fecha</th></tr></thead>
+            <tbody id="movements-body"><tr><td colspan="6">Cargando...</td></tr></tbody>
         </table>
     </div>
 </section>
+<noscript><p class="alert alert-warning mt-3">Activa JavaScript para consultar los datos.</p></noscript>
+@section Scripts { <script src="~/js/dashboard.js" asp-append-version="true"></script> }
